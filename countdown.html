@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>倒计时</title>
+</head>
+
+<body>
+    <div class="box">
+        距离我的生日还有：
+        <span id="spanBox"></span>
+    </div>
+
+    <script>
+        function getSTime() {
+            return new Promise(resolve => {
+                let xhr = new XMLHttpRequest;
+                xhr.open('head', './data.json');
+                xhr.onreadystatechange = function () {
+                    let status = xhr.status,
+                        state = xhr.readyState;
+                    if (!/^(2|3)\d{2}$/.test(status)) return;
+                    if (state === 2) {
+                        let sdate = new Date(xhr.getResponseHeader('date'));
+                        resolve(sdate);
+                    }
+                }
+                xhr.send();
+            })
+        }
+
+        async function init() {
+            let stime = await getSTime(),
+                targetTime = new Date('2021 / 02 / 05 00: 00: 00'),
+                timer = null;
+            function computed() {
+                let spanTime = targetTime - stime;
+                if (spanTime <= 0) {
+                    spanBox.innerHTML = `00:00:00`;
+                    clearInterval(timer);
+                    return;
+                }
+                let hours = Math.floor(spanTime / 1000 / 60 / 60);
+                spanTime = spanTime - hours * 60 * 60 * 1000;
+                let minutes = Math.floor(spanTime / 1000 / 60)
+                spanTime = spanTime - minutes * 60 * 1000;
+                let seconds = Math.floor(spanTime / 1000)
+                hours = hours < 10 ? '0' + hours : hours;
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                seconds = seconds < 10 ? '0' + seconds : seconds;
+                spanBox.innerHTML = `${hours}:${minutes}:${seconds}`;
+            }
+            computed();
+
+            timer = setInterval(_ => {
+                stime = new Date(stime.getTime() + 1000);
+                computed()
+            }, 1000)
+        }
+        init();
+    </script>
+</body>
+
+</html>
